@@ -5,6 +5,7 @@ from gui.DPGW.Styles import DpgColor
 import tkinter as tk
 
 
+
 root = tk.Tk()
 screen_width = int(root.winfo_screenwidth())
 screen_height = int(root.winfo_screenheight())
@@ -33,6 +34,9 @@ dpg.show_viewport()
 dpg.set_primary_window("Primary Window", True)
 dpg.start_dearpygui()
 dpg.destroy_context()
+
+
+
 
 
 

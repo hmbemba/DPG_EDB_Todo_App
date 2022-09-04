@@ -7,6 +7,7 @@ from gui.DPGW.Row import Row
 from gui.DPGW.Button import Button
 from gui.DPGW.Input import Input
 import dearpygui.dearpygui as dpg
+from db.Models.MyModel import TodosModel
 
 
 @dataclass
@@ -76,7 +77,7 @@ class MyView(BaseView):
             
 
             self.createNotificationsRow()
-
+            self.getAllTodos()
     def createNotificationsRow(self):
 
         self.notificationRow = Row(
@@ -211,6 +212,13 @@ class MyView(BaseView):
         task = self.newTodoInput.getValue()
         self.newTodoInput.clear()
         
+        # insert into db
+        TodosModel.insertEntry(printStr=False, _task=task, _completed=False)
+        
+        '''
+        I need to get the ID of the todo that is inserted and place it in the
+        user_data of the todo Row
+        '''
         
         # Expand the todoItems Container height 
         todoItemsContainerH = dpg.get_item_height(self.todoItemsContainer.link())
@@ -300,6 +308,9 @@ class MyView(BaseView):
         todoItemsContainerH = dpg.get_item_height(self.todoItemsContainer.link())
         fullH  = todoItemsContainerH - self.todoHeight - self.todoItemsContainer.verticalItemSpacing[1]
         dpg.configure_item(self.todoItemsContainer.link(), height=fullH)
+        
+        # Delete from DB
+        
 
 
     def clearAll(self):
@@ -307,3 +318,87 @@ class MyView(BaseView):
         self.totalNumOfTasks = 0
         self.numTasks.setValue(f"You Have {self.totalNumOfTasks} Tasks Left")
         dpg.configure_item(self.todoItemsContainer.link(), height=2)
+
+    def getAllTodos(self):
+        for todo in TodosModel.getAll(printStr=False):
+            task = todo.task
+            
+        
+            # Expand the todoItems Container height 
+            todoItemsContainerH = dpg.get_item_height(self.todoItemsContainer.link())
+            fullH  = todoItemsContainerH + self.todoHeight + self.todoItemsContainer.verticalItemSpacing[1]
+            dpg.configure_item(self.todoItemsContainer.link(), height=fullH)
+        
+
+            row = Row(
+                **{
+                    "tag": f"todoItemRow_{self.totalNumOfTasks}_{self.id}",
+                    "parent": self.todoItemsContainer.link(),
+                    "numCols": 2,
+                    "sizing": 0,  # ,1,2,3,
+                    "border": False,#True,
+                    "bkgColor": [242, 242, 242, 10],
+                    "padding": [0, 0],  # Default is [10,0]
+                }
+            ).create()
+
+            textContainer = Container(
+                **{
+                    "tag": f"textContainer_{self.totalNumOfTasks}_{self.id}",
+                    "show": True,
+                    "w": 0,  # -1 is full, 0 is default, .001 to 1 is multiplied to screenWidth, 1.001+ = pixel values
+                    "h": self.todoHeight,  # -1 is full, 0 is default, .001 to 1 is multiplied to screenHeight, 1.001+ = pixel values
+                    "autoSizeX": False,  # Overtakes w
+                    "autoSizeY": False,  # Overtakes h
+                    "itemOrientation": "col",  # row = items stacked left to right, col = items stacked top to btm
+                    "horzGap": 0,  # space between items when itemOrientation is row
+                    "verticalItemSpacing": [0, 0],
+                    "border": True,
+                    "borderRadius": 0,
+                    "borderColor": [255, 0, 0, 0],  # "orange",
+                    "bkgColor": [0, 0, 255, 50],
+                    "padding": [15, 10],  # [LR,TB] !Can also be negative
+                    "onHover": None,
+                    "noScrollBar": True,
+                    "font": None,  # "main_20"
+                }
+            ).create(Parent=row.link())
+
+            text = Text(
+                **{
+                    "tag": f"todoItemText_{self.totalNumOfTasks}_{self.id}",
+                    "color": "white",
+                    "text": task,
+                    "bullet": False,
+                    "font": "mainFont_20",
+                }
+            ).create(Parent=textContainer.link())
+
+            delTodo = Button(
+                **{
+                    "tag": f"delTodoButton_{self.totalNumOfTasks}_{self.id}",
+                    "w": 100,
+                    "h": self.todoHeight,
+                    "text": "Del",
+                    "textColor": [255, 255, 255, 255],  # "white",
+                    "font": "mainFont_20",
+                    "callback": self.deleteTodo,
+                    "user_data": row.tag + "_table",
+                    "border": False,
+                    "borderRadius": 0,
+                    "borderColor": [0, 0, 0, 0],  #'red',
+                    "bkgColor": [231, 77, 61, 255],
+                    "bkgColorHovered": [
+                        231,
+                        77,
+                        61,
+                        155,
+                    ],  # [37 * 0.7, 37 * 0.7, 38 * 0.7, 255],
+                    "bkgColorClicked": [0, 0, 0, 0],  #'green',
+                    "padding": [10, 10],  # [10, 10],
+                }
+            ).create(Parent=row.link())
+            
+            # Set numTasks
+            self.totalNumOfTasks += 1
+            self.numTasks.setValue(f"You Have {self.totalNumOfTasks} Tasks Left")

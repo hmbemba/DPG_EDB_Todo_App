@@ -6,8 +6,10 @@ pp = pprint.PrettyPrinter(indent=4)
 
 client = edgedb.create_client()
 
-InvoicesModel = EdgeDBModel(modelName='Invoices', client=client)
-InvoicesModel.addProperty(_name = 'three_word_name', _type = Type.str, _req = True)
+TodosModel = EdgeDBModel(modelName='Todos_Model', client=client)
+TodosModel.addProperty(_propertyName = 'task', _propertyType = Type.str, _req = True)
+TodosModel.addProperty(_propertyName = 'completed', _propertyType = Type.bool, _req = True)
+
 
 #InvoicesModel.getByProperty(printStr=True, propName='three_word_name', propType=Type.str, _three_word_name='TameHolographcScallop')
 
