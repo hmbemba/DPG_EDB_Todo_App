@@ -12,6 +12,7 @@ import dearpygui.dearpygui as dpg
 @dataclass
 class MyView(BaseView):
     totalNumOfTasks: int = 0
+    todoHeight = 50
 
     def __post_init__(self):
         self.id = self.getId()
@@ -61,10 +62,10 @@ class MyView(BaseView):
                     "autoSizeY": False,  # Overtakes h
                     "itemOrientation": "col",  # row = items stacked left to right, col = items stacked top to btm
                     "horzGap": 0,  # space between items when itemOrientation is row
-                    "verticalItemSpacing": [0, 10],
+                    "verticalItemSpacing": [0, 5],
                     "border": True,
                     "borderRadius": 0,
-                    "borderColor": [25, 0, 255, 255],  # "orange",
+                    "borderColor": [255, 0, 255, 0],  # "orange",
                     "bkgColor": [0, 0, 255, 0],
                     "padding": [0, 0],  # [LR,TB] !Can also be negative
                     "onHover": None,
@@ -72,6 +73,7 @@ class MyView(BaseView):
                     "font": None,  # "main_20"
                 }
             ).create(Parent=self.top.link())
+            
 
             self.createNotificationsRow()
 
@@ -89,12 +91,12 @@ class MyView(BaseView):
             }
         ).create()
 
-        self.numTasksContainer = Container(
+        textContainer = Container(
             **{
-                "tag": f"numTasksContainer_{self.id}",
+                "tag": f"textContainer_{self.id}",
                 "show": True,
-                "w": -1,  # -1 is full, 0 is default, .001 to 1 is multiplied to screenWidth, 1.001+ = pixel values
-                "h": 0,  # -1 is full, 0 is default, .001 to 1 is multiplied to screenHeight, 1.001+ = pixel values
+                "w": 0,  # -1 is full, 0 is default, .001 to 1 is multiplied to screenWidth, 1.001+ = pixel values
+                "h": 50,  # -1 is full, 0 is default, .001 to 1 is multiplied to screenHeight, 1.001+ = pixel values
                 "autoSizeX": False,  # Overtakes w
                 "autoSizeY": False,  # Overtakes h
                 "itemOrientation": "col",  # row = items stacked left to right, col = items stacked top to btm
@@ -103,13 +105,14 @@ class MyView(BaseView):
                 "border": True,
                 "borderRadius": 0,
                 "borderColor": [255, 0, 0, 0],  # "orange",
-                "bkgColor": [0, 0, 255, 0],
-                "padding": [10, 8],  # [LR,TB] !Can also be negative
+                "bkgColor": [0, 0, 255, 50],
+                "padding": [15, 10],  # [LR,TB] !Can also be negative
                 "onHover": None,
                 "noScrollBar": True,
                 "font": None,  # "main_20"
             }
-        )  # .create(Parent=self.notificationRow.link())
+        ).create(Parent=self.notificationRow.link())
+
 
         self.numTasks = Text(
             **{
@@ -119,13 +122,13 @@ class MyView(BaseView):
                 "bullet": False,
                 "font": "mainFont_20",
             }
-        ).create(Parent=self.notificationRow.link())
+        ).create(Parent=textContainer.link())
 
         self.clearAllTasksButton = Button(
             **{
                 "tag": f"clearAllTasksButton_{self.id}",
                 "w": 100,
-                "h": 0,
+                "h": 50,
                 "text": "Clear All",
                 "textColor": [255, 255, 255, 255],  # "white",
                 "font": "mainFont_20",
@@ -152,7 +155,7 @@ class MyView(BaseView):
                 "parent": self.top.link(),
                 "numCols": 2,
                 "sizing": 0,  # ,1,2,3,
-                "border": False,  # True,
+                "border": True,
                 "bkgColor": [255, 0, 0, 0],
                 "padding": [0, 0],  # Default is [10,0]
             }
@@ -207,8 +210,13 @@ class MyView(BaseView):
     def createTodo(self):
         task = self.newTodoInput.getValue()
         self.newTodoInput.clear()
-        h = dpg.get_item_height(self.todoItemsContainer.link()) + 50
-        dpg.configure_item(self.todoItemsContainer.link(), height=h)
+        
+        
+        # Expand the todoItems Container height 
+        todoItemsContainerH = dpg.get_item_height(self.todoItemsContainer.link())
+        fullH  = todoItemsContainerH + self.todoHeight + self.todoItemsContainer.verticalItemSpacing[1]
+        dpg.configure_item(self.todoItemsContainer.link(), height=fullH)
+    
 
         row = Row(
             **{
@@ -227,7 +235,7 @@ class MyView(BaseView):
                 "tag": f"textContainer_{self.totalNumOfTasks}_{self.id}",
                 "show": True,
                 "w": 0,  # -1 is full, 0 is default, .001 to 1 is multiplied to screenWidth, 1.001+ = pixel values
-                "h": 40,  # -1 is full, 0 is default, .001 to 1 is multiplied to screenHeight, 1.001+ = pixel values
+                "h": self.todoHeight,  # -1 is full, 0 is default, .001 to 1 is multiplied to screenHeight, 1.001+ = pixel values
                 "autoSizeX": False,  # Overtakes w
                 "autoSizeY": False,  # Overtakes h
                 "itemOrientation": "col",  # row = items stacked left to right, col = items stacked top to btm
@@ -257,8 +265,8 @@ class MyView(BaseView):
         delTodo = Button(
             **{
                 "tag": f"delTodoButton_{self.totalNumOfTasks}_{self.id}",
-                "w": 50,
-                "h": 0,
+                "w": 100,
+                "h": self.todoHeight,
                 "text": "Del",
                 "textColor": [255, 255, 255, 255],  # "white",
                 "font": "mainFont_20",
@@ -278,7 +286,8 @@ class MyView(BaseView):
                 "padding": [10, 10],  # [10, 10],
             }
         ).create(Parent=row.link())
-
+        
+        # Set numTasks
         self.totalNumOfTasks += 1
         self.numTasks.setValue(f"You Have {self.totalNumOfTasks} Tasks Left")
 
@@ -286,8 +295,12 @@ class MyView(BaseView):
         dpg.delete_item(data)
         self.totalNumOfTasks -= 1
         self.numTasks.setValue(f"You Have {self.totalNumOfTasks} Tasks Left")
-        h = dpg.get_item_height(self.todoItemsContainer.link()) - 50
-        dpg.configure_item(self.todoItemsContainer.link(), height=h)
+        
+        # Retract the todoItems Container height 
+        todoItemsContainerH = dpg.get_item_height(self.todoItemsContainer.link())
+        fullH  = todoItemsContainerH - self.todoHeight - self.todoItemsContainer.verticalItemSpacing[1]
+        dpg.configure_item(self.todoItemsContainer.link(), height=fullH)
+
 
     def clearAll(self):
         dpg.delete_item(self.todoItemsContainer.link(), children_only=True)
