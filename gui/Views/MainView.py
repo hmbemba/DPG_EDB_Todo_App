@@ -15,6 +15,7 @@ class MyView(BaseView):
     totalNumOfTasks: int = 0
     todoHeight = 50
 
+    #Layout
     def __post_init__(self):
         self.id = self.getId()
         with dpg.stage(tag=f"Stage_{self.id}"):
@@ -78,6 +79,8 @@ class MyView(BaseView):
 
             self.createNotificationsRow()
             self.getAllTodos()
+    
+    #Layout
     def createNotificationsRow(self):
 
         self.notificationRow = Row(
@@ -149,6 +152,7 @@ class MyView(BaseView):
             }
         ).create(Parent=self.notificationRow.link())
 
+    #Layout
     def createNewTodoComponents(self):
         self.newTodoRow = Row(
             **{
@@ -207,6 +211,7 @@ class MyView(BaseView):
                 "padding": [10, 10],  # [10, 10],
             }
         ).create(Parent=self.newTodoRow.link())
+
 
     def createTodo(self):
         task = self.newTodoInput.getValue()
@@ -312,8 +317,6 @@ class MyView(BaseView):
         # Delete from DB
         TodosModel.delEntry(user_data['dbEntryToDelete'],printStr=False)
         
-
-
     def clearAll(self):
         dpg.delete_item(self.todoItemsContainer.link(), children_only=True)
         self.totalNumOfTasks = 0
