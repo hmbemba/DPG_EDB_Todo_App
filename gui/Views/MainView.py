@@ -156,7 +156,7 @@ class MyView(BaseView):
                 "parent": self.top.link(),
                 "numCols": 2,
                 "sizing": 0,  # ,1,2,3,
-                "border": True,
+                "border": False,
                 "bkgColor": [255, 0, 0, 0],
                 "padding": [0, 0],  # Default is [10,0]
             }
@@ -319,6 +319,7 @@ class MyView(BaseView):
         self.totalNumOfTasks = 0
         self.numTasks.setValue(f"You Have {self.totalNumOfTasks} Tasks Left")
         dpg.configure_item(self.todoItemsContainer.link(), height=2)
+        TodosModel.delAll()
 
     def getAllTodos(self):
         for todo in TodosModel.getAll(printStr=False):
