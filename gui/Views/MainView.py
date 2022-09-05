@@ -213,12 +213,7 @@ class MyView(BaseView):
         self.newTodoInput.clear()
         
         # insert into db
-        TodosModel.insertEntry(printStr=False, _task=task, _completed=False)
-        
-        '''
-        I need to get the ID of the todo that is inserted and place it in the
-        user_data of the todo Row
-        '''
+        todoId = TodosModel.insertEntry(printStr=False, _task=task, _completed=False)[0].id
         
         # Expand the todoItems Container height 
         todoItemsContainerH = dpg.get_item_height(self.todoItemsContainer.link())
@@ -279,7 +274,7 @@ class MyView(BaseView):
                 "textColor": [255, 255, 255, 255],  # "white",
                 "font": "mainFont_20",
                 "callback": self.deleteTodo,
-                "user_data": row.tag + "_table",
+                "user_data": {'rowToDelete':row.tag + "_table", 'dbEntryToDelete':todoId},
                 "border": False,
                 "borderRadius": 0,
                 "borderColor": [0, 0, 0, 0],  #'red',
@@ -294,13 +289,18 @@ class MyView(BaseView):
                 "padding": [10, 10],  # [10, 10],
             }
         ).create(Parent=row.link())
+        #dpg.set_item_user_data(delTodo.tag, "Some Extra User Data")
         
         # Set numTasks
         self.totalNumOfTasks += 1
         self.numTasks.setValue(f"You Have {self.totalNumOfTasks} Tasks Left")
 
-    def deleteTodo(self, sender, _, data):
-        dpg.delete_item(data)
+    def deleteTodo(self, sender, app_data, user_data):
+        # print("sender",sender)
+        # print("app data",app_data)
+        # print("user_data",user_data)
+        
+        dpg.delete_item(user_data['rowToDelete'])
         self.totalNumOfTasks -= 1
         self.numTasks.setValue(f"You Have {self.totalNumOfTasks} Tasks Left")
         
@@ -310,6 +310,7 @@ class MyView(BaseView):
         dpg.configure_item(self.todoItemsContainer.link(), height=fullH)
         
         # Delete from DB
+        TodosModel.delEntry(user_data['dbEntryToDelete'],printStr=False)
         
 
 
@@ -322,7 +323,7 @@ class MyView(BaseView):
     def getAllTodos(self):
         for todo in TodosModel.getAll(printStr=False):
             task = todo.task
-            
+            todoId = todo.id
         
             # Expand the todoItems Container height 
             todoItemsContainerH = dpg.get_item_height(self.todoItemsContainer.link())
@@ -383,7 +384,7 @@ class MyView(BaseView):
                     "textColor": [255, 255, 255, 255],  # "white",
                     "font": "mainFont_20",
                     "callback": self.deleteTodo,
-                    "user_data": row.tag + "_table",
+                    "user_data": {'rowToDelete':row.tag + "_table", 'dbEntryToDelete':todoId},
                     "border": False,
                     "borderRadius": 0,
                     "borderColor": [0, 0, 0, 0],  #'red',
